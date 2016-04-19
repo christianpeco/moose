@@ -50,6 +50,7 @@ public:
   XFEMInterface(MooseApp & app):
     ConsoleStreamInterface(app),
     _material_data(NULL),
+    _bnd_material_data(NULL),
     _mesh(NULL),
     _mesh2(NULL)
   {
@@ -81,9 +82,17 @@ public:
   /**
    * Set the pointer to the MaterialData
    */
-  void setMaterialData(std::vector<MooseSharedPointer<MaterialData> > *material_data)
+  void setMaterialData(std::vector<MooseSharedPointer<MaterialData> > * material_data)
   {
     _material_data = material_data;
+  }
+
+  /**
+   * Set the pointer to the Boundary MaterialData
+   */
+  void setBoundaryMaterialData(std::vector<MooseSharedPointer<MaterialData> > * bnd_material_data)
+  {
+    _bnd_material_data = bnd_material_data;
   }
 
   /**
@@ -104,6 +113,7 @@ public:
 
 protected:
   std::vector<MooseSharedPointer<MaterialData> > * _material_data;
+  std::vector<MooseSharedPointer<MaterialData> > * _bnd_material_data;
 
   MeshBase * _mesh;
   MeshBase * _mesh2;

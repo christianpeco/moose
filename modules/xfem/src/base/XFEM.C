@@ -202,7 +202,7 @@ XFEM::update(Real time)
     MeshCommunication().make_nodes_parallel_consistent(*_mesh);
 //    _mesh->find_neighbors();
 //    _mesh->contract();
-    _mesh->allow_renumbering(false);
+    _mesh->allow_renumbering(true);
     _mesh->skip_partitioning(true);
     _mesh->prepare_for_use();
 //    _mesh->prepare_for_use(true,true); //doing this preserves the numbering, but generates warning
@@ -212,7 +212,7 @@ XFEM::update(Real time)
       _mesh2->update_parallel_id_counts();
       MeshCommunication().make_elems_parallel_consistent(*_mesh2);
       MeshCommunication().make_nodes_parallel_consistent(*_mesh2);
-      _mesh2->allow_renumbering(false);
+      _mesh2->allow_renumbering(true);
       _mesh2->skip_partitioning(true);
       _mesh2->prepare_for_use();
 //      _mesh2->prepare_for_use(true,true);
@@ -986,9 +986,17 @@ XFEM::cutMeshWithEFA()
     libmesh_elem->processor_id() = parent_elem->processor_id();
 
     //TODO: The 0 here is the thread ID.  Need to sort out how to do this correctly
-    //TODO: Also need to copy surface and neighbor material data
+    //TODO: Also need to copy neighbor material data
     if (parent_elem->processor_id() == _mesh->processor_id())
+    {
       (*_material_data)[0]->copy(*libmesh_elem, *parent_elem, 0);
+      for (unsigned int side = 0; side < parent_elem->n_sides(); ++side)
+      {
+        std::vector<boundary_id_type> parent_elem_boundary_ids = _mesh->boundary_info->boundary_ids(parent_elem, side);
+        if (parent_elem_boundary_ids.size() != 0)
+          (*_bnd_material_data)[0]->copy(*libmesh_elem, *parent_elem, 3);
+      }
+    }
 
     // The crack tip origin map is stored before cut, thus the elem should be updated with new element.
     std::map<const Elem*, std::vector<Point> >::iterator mit = _elem_crack_origin_direction_map.find(parent_elem);
